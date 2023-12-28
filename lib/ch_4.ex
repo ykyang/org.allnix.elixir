@@ -17,14 +17,25 @@ defmodule Ch4 do
 
   ## 4.1.1 Basic abstraction
   def test_todolist_1() do
-    todo_list = TodoList.new()
-    |> TodoList.add_entry(~D[2023-12-19], "Dentist")
-    |> TodoList.add_entry(~D[2023-12-20], "Shopping")
-    |> TodoList.add_entry(~D[2023-12-19], "Movies")
+    # todo_list = TodoList.new()
+    # |> TodoList.add_entry(~D[2023-12-19], "Dentist")
+    # |> TodoList.add_entry(~D[2023-12-20], "Shopping")
+    # |> TodoList.add_entry(~D[2023-12-19], "Movies")
+    # assert TodoList.entries(todo_list, ~D[2023-12-19]) == ["Movies", "Dentist"]
+    # assert TodoList.entries(todo_list, ~D[2023-12-18]) == []
 
-    assert TodoList.entries(todo_list, ~D[2023-12-19]) == ["Movies", "Dentist"]
+
+    todo_list = TodoList.new()
+    |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Dentist" })
+    |> TodoList.add_entry(%{date: ~D[2023-12-20], title: "Shopping"})
+    |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Movies"  })
+    assert TodoList.entries(todo_list, ~D[2023-12-19]) == [%{date: ~D[2023-12-19], title: "Movies"  }, %{date: ~D[2023-12-19], title: "Dentist" }]
     assert TodoList.entries(todo_list, ~D[2023-12-18]) == []
+
   end
   ## 4.1.2 Composing abstraction
   ## MultiDict
+  ## 4.1.3 Structuring data with maps
+
+
 end
