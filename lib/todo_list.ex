@@ -1,16 +1,32 @@
 ## 4.1.1 Basic abstraction
 defmodule TodoList do
   #import MultiDict
+
+  ## 4.1.3
   #def new(), do: %{}
-  def new(), do: MultiDict.new()
   # def add_entry(todo_list, date, title) do
   #   MultiDict.add(todo_list, date, title)
   # end
+  # def entries(todo_list, date) do
+  #   Map.get(todo_list, date, [])
+  # end
+
+  ## 4.1.4
+  # def new(), do: MultiDict.new()
+  # def add_entry(todo_list, entry) do
+  #   MultiDict.add(todo_list, entry.date, entry)
+  # end
+  # def entries(todo_list, date) do
+  #   MultiDict.get(todo_list, date)
+  # end
+
+  ## 4.2.1
+  defstruct next_id: 1, entries: %{}
+  def new(), do: %TodoList{}
+
+  @spec add_entry(TodoList, map()) :: TodoList
   def add_entry(todo_list, entry) do
-    MultiDict.add(todo_list, entry.date, entry)
-  end
-  def entries(todo_list, date) do
-    #Map.get(todo_list, date, [])
-    MultiDict.get(todo_list, date)
+    # add id to entry
+    entry = Map.put(entry, :id, todo_list.next_id)
   end
 end

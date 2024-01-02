@@ -1,3 +1,4 @@
+# iex
 # c(["lib/todo_list.ex", "lib/ch_4.ex"])
 # Ch4.test_ch4_1()
 
@@ -29,28 +30,25 @@ defmodule Ch4 do
   import ExUnit.Assertions
 
   ## 4.1.1 Basic abstraction
-  def test_ch4_1() do
-    ## 4.1.2 Composing abstraction
-    ## MultiDict
-    # todo_list = TodoList.new()
-    # |> TodoList.add_entry(~D[2023-12-19], "Dentist")
-    # |> TodoList.add_entry(~D[2023-12-20], "Shopping")
-    # |> TodoList.add_entry(~D[2023-12-19], "Movies")
-    # assert TodoList.entries(todo_list, ~D[2023-12-19]) == ["Movies", "Dentist"]
-    # assert TodoList.entries(todo_list, ~D[2023-12-18]) == []
+  # def test_ch4_1() do
+  #   ## 4.1.2 Composing abstraction
+  #   ## MultiDict
+  #   # todo_list = TodoList.new()
+  #   # |> TodoList.add_entry(~D[2023-12-19], "Dentist")
+  #   # |> TodoList.add_entry(~D[2023-12-20], "Shopping")
+  #   # |> TodoList.add_entry(~D[2023-12-19], "Movies")
+  #   # assert TodoList.entries(todo_list, ~D[2023-12-19]) == ["Movies", "Dentist"]
+  #   # assert TodoList.entries(todo_list, ~D[2023-12-18]) == []
 
 
-    ## 4.1.3 Structuring data with maps
-    todo_list = TodoList.new()
-    |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Dentist" })
-    |> TodoList.add_entry(%{date: ~D[2023-12-20], title: "Shopping"})
-    |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Movies"  })
-    assert TodoList.entries(todo_list, ~D[2023-12-19]) == [%{date: ~D[2023-12-19], title: "Movies"  }, %{date: ~D[2023-12-19], title: "Dentist" }]
-    assert TodoList.entries(todo_list, ~D[2023-12-18]) == []
-  end
-  ## 4.1.2 Composing abstraction
-  ## MultiDict
-  ## 4.1.3 Structuring data with maps
+  #   ## 4.1.3 Structuring data with maps
+  #   todo_list = TodoList.new()
+  #   |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Dentist" })
+  #   |> TodoList.add_entry(%{date: ~D[2023-12-20], title: "Shopping"})
+  #   |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Movies"  })
+  #   assert TodoList.entries(todo_list, ~D[2023-12-19]) == [%{date: ~D[2023-12-19], title: "Movies"  }, %{date: ~D[2023-12-19], title: "Dentist" }]
+  #   assert TodoList.entries(todo_list, ~D[2023-12-18]) == []
+  # end
 
   ## 4.1.4 Abstracting with structs
   #  c(["lib/todo_list.ex", "lib/ch_4.ex"]); Ch4.test_ch4_2()
@@ -61,7 +59,7 @@ defmodule Ch4 do
     %Fraction{a: u, b: v} = f
     assert u == f.a; assert v == f.b;
     assert %Fraction{} = f
-    assert_raise MatchError, fn -> %Fraction{} = %{a: 1, b: 2} end;
+    #assert_raise MatchError, fn -> %Fraction{} = %{a: 1, b: 2} end;
     #catch_error %Fraction{} = %{a: 1, b: 2}
 
     ## new struct from existing struct
@@ -74,6 +72,12 @@ defmodule Ch4 do
     assert Fraction.new(6, 8) |> Fraction.value() == 0.75
 
     true
+  end
+
+  ## 4.2 Working with hierarchical data
+  #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_3()
+  def test_ch4_3() do
+
   end
 
 end
