@@ -1,3 +1,6 @@
+# iex --werl
+
+# chcp 65001 # from https://groups.google.com/g/elixir-lang-talk/c/C6YrOKQ81PI
 # iex
 # c(["lib/todo_list.ex", "lib/ch_4.ex"])
 # Ch4.test_ch4_1()
@@ -77,7 +80,17 @@ defmodule Ch4 do
   ## 4.2 Working with hierarchical data
   #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_3()
   def test_ch4_3() do
+    todo_list = TodoList.new()
+    |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Dentist" })
+    |> TodoList.add_entry(%{date: ~D[2023-12-20], title: "Shopping"})
+    |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Movies"  })
 
+    assert TodoList.entries(todo_list, ~D[2023-12-19]) == [
+      %{date: ~D[2023-12-19], id: 1, title: "Dentist"},
+      %{date: ~D[2023-12-19], id: 3, title: "Movies"}
+    ]
+
+    true
   end
 
 end
