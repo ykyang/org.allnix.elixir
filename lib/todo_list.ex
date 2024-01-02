@@ -22,7 +22,16 @@ defmodule TodoList do
 
   ## 4.2.1
   defstruct next_id: 1, entries: %{}
-  def new(), do: %TodoList{}
+
+  #def new(), do: %TodoList{}
+  def new(entries \\ []) do
+    Enum.reduce(
+      entries, %TodoList{},
+      fn entry, todo_list ->
+        add_entry(todo_list, entry)
+      end
+    )
+  end
 
   @spec add_entry(TodoList, map()) :: TodoList
   def add_entry(todo_list, entry) do
@@ -57,3 +66,7 @@ defmodule TodoList do
     Map.delete(todo_list, entry_id)
   end
 end
+
+# defmoudle TodoList.CsvImporter do
+
+# end

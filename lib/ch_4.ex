@@ -31,6 +31,7 @@ end
 defmodule Ch4 do
   #import TodoList
   import ExUnit.Assertions
+  import File
 
   ## 4.1.1 Basic abstraction
   # def test_ch4_1() do
@@ -133,5 +134,41 @@ defmodule Ch4 do
     true
   end
 
+  ## 4.2.4
+  #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_5()
+  def test_ch4_5() do
+    entries = [
+      %{date: ~D[2023-12-19], title: "Dentist"},
+      %{date: ~D[2023-12-20], title: "Shopping"},
+      %{date: ~D[2023-12-19], title: "Movies"}
+    ]
+
+    todo_list = TodoList.new(entries)
+
+    true
+  end
+
+  ## 4.2.5
+  #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_6()
+  def test_ch4_6() do
+    entries = File.stream!("todos.csv")
+    |> Stream.map(fn line -> String.trim_trailing(line, "\n") end)
+    #|> Enum.each(fn line -> IO.puts("#{line}") end)
+    |> Stream.map(fn line -> String.split(line, ",") end)
+    #|> Enum.each(fn [a,b] -> IO.puts("#{a} #{b}") end)
+    |> Stream.map(fn [a,b] -> [Date.from_iso8601!(a), b] end)
+    #|> Enum.each(fn [a,b] -> IO.puts("#{a} #{b}") end)
+    |> Stream.map(fn [date,title] -> %{date: date, title: title} end)
+    #|> Enum.each(fn x -> IO.inspect(x) end)
+
+    todo_list = TodoList.new(entries)
+
+    assert todo_list == TodoList.new([
+      %{date: ~D[2023-12-19], title: "Dentist"},
+      %{date: ~D[2023-12-20], title: "Shopping"},
+      %{date: ~D[2023-12-19], title: "Movies"}
+    ])
+    true
+  end
 
 end
