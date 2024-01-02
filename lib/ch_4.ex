@@ -78,8 +78,11 @@ defmodule Ch4 do
   end
 
   ## 4.2 Working with hierarchical data
+
+
   #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_3()
   def test_ch4_3() do
+    ## 4.2.1
     todo_list = TodoList.new()
     |> TodoList.add_entry(%{date: ~D[2023-12-19], title: "Dentist" })
     |> TodoList.add_entry(%{date: ~D[2023-12-20], title: "Shopping"})
@@ -90,7 +93,45 @@ defmodule Ch4 do
       %{date: ~D[2023-12-19], id: 3, title: "Movies"}
     ]
 
+    ## 4.2.2
+    todo_list = TodoList.update_entry(
+      todo_list, 1, &Map.put(&1, :date, ~D[2023-12-20])
+    )
+    assert TodoList.entries(todo_list, ~D[2023-12-20]) == [
+      %{date: ~D[2023-12-20], id: 1, title: "Dentist"},
+      %{date: ~D[2023-12-20], id: 2, title: "Shopping"}
+    ]
+
     true
   end
+
+  ## 4.2.3
+  #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_4()
+  def test_ch4_4() do
+    todo_list = %{
+      1 => %{date: ~D[2023-12-19], title: "Dentist"},
+      2 => %{date: ~D[2023-12-20], title: "Shopping"},
+      3 => %{date: ~D[2023-12-19], title: "Movies"}
+    }
+    assert todo_list[3] == %{date: ~D[2023-12-19], title: "Movies"}
+
+    # compile time
+    todo_list = put_in(todo_list[3].title, "Theater")
+    assert todo_list[3] == %{date: ~D[2023-12-19], title: "Theater"}
+
+    # dynamic
+    path = [3, :title]
+    todo_list = put_in(todo_list, path, "Concert")
+    assert todo_list[3] == %{date: ~D[2023-12-19], title: "Concert"}
+
+    todo_list = TodoList.delete_entry(todo_list, 3)
+    assert todo_list == %{
+      1 => %{date: ~D[2023-12-19], title: "Dentist"},
+      2 => %{date: ~D[2023-12-20], title: "Shopping"},
+    }
+
+    true
+  end
+
 
 end
