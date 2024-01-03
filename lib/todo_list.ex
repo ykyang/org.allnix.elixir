@@ -67,6 +67,20 @@ defmodule TodoList do
   end
 end
 
-# defmoudle TodoList.CsvImporter do
+defmodule TodoList.CsvImporter do
+  import File
+  def import(file) do
+    entries = File.stream!(file)
+    |> Stream.map(fn line -> String.trim_trailing(line, "\n") end)
+    #|> Enum.each(fn line -> IO.puts("#{line}") end)
+    |> Stream.map(fn line -> String.split(line, ",") end)
+    #|> Enum.each(fn [a,b] -> IO.puts("#{a} #{b}") end)
+    |> Stream.map(fn [a,b] -> [Date.from_iso8601!(a), b] end)
+    #|> Enum.each(fn [a,b] -> IO.puts("#{a} #{b}") end)
+    |> Stream.map(fn [date,title] -> %{date: date, title: title} end)
+    #|> Enum.each(fn x -> IO.inspect(x) end)
 
-# end
+    todo_list = TodoList.new(entries)
+  end
+
+end

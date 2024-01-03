@@ -151,17 +151,12 @@ defmodule Ch4 do
   ## 4.2.5
   #  c(["lib/todo_list.ex", "lib/ch_4.ex"], "lib"); Ch4.test_ch4_6()
   def test_ch4_6() do
-    entries = File.stream!("todos.csv")
-    |> Stream.map(fn line -> String.trim_trailing(line, "\n") end)
-    #|> Enum.each(fn line -> IO.puts("#{line}") end)
-    |> Stream.map(fn line -> String.split(line, ",") end)
-    #|> Enum.each(fn [a,b] -> IO.puts("#{a} #{b}") end)
-    |> Stream.map(fn [a,b] -> [Date.from_iso8601!(a), b] end)
-    #|> Enum.each(fn [a,b] -> IO.puts("#{a} #{b}") end)
-    |> Stream.map(fn [date,title] -> %{date: date, title: title} end)
-    #|> Enum.each(fn x -> IO.inspect(x) end)
+    ## todos.csv
+    # 2023-12-19,Dentist
+    # 2023-12-20,Shopping
+    # 2023-12-19,Movies
 
-    todo_list = TodoList.new(entries)
+    todo_list = TodoList.CsvImporter.import("todos.csv")
 
     assert todo_list == TodoList.new([
       %{date: ~D[2023-12-19], title: "Dentist"},
