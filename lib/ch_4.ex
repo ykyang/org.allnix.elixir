@@ -166,4 +166,8 @@ defmodule Ch4 do
     true
   end
 
+  ## 4.3 Polymorphism with protocols
+
+  ## 4.3.1 Protocol basics
+  ## 4.3.2 Implementing a protocol
 end
