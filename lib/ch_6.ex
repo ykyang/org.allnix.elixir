@@ -9,11 +9,27 @@
 # Code.put_compiler_option(:ignore_module_conflict, true)
 
 defmodule Ch6 do
-
+  import ExUnit.Assertions
   ## 6 Generic server processes
   ## 6.1 Building a generic server process
   ## 6.1.1 Plugging in with modules
   ## 6.1.2 Implementing the generic code
+  ## 6.1.3 Using the generic abstraction
+  #  c(["lib/ch_6.ex"]); Ch6.test_ch6_1()
+  def test_ch6_1() do
+    pid = ServerProcess.start(KeyValueStore)
+    ServerProcess.call(pid, {:put, :some_key, :some_value})
+    out = ServerProcess.call(pid, {:get, :some_key})
+    assert out == :some_value
+
+    # Use convenience methods
+    pid = KeyValueStore.start()
+    KeyValueStore.put(pid, :some_key, :some_value)
+    out = KeyValueStore.get(pid, :some_key)
+    assert out == :some_value
+
+    true
+  end
 end
 
 defmodule ServerProcess do
@@ -36,5 +52,25 @@ defmodule ServerProcess do
         send(caller, {:response, response})
         loop(callback_module, new_state)
     end
+  end
+end
+
+defmodule KeyValueStore do
+  def init(), do: %{}
+  def handle_call({:get, key}, db) do
+    {Map.get(db, key), db}
+  end
+  def handle_call({:put, key, value}, db) do
+    {:ok, Map.put(db, key, value)}
+  end
+
+  def start() do
+    ServerProcess.start(KeyValueStore)
+  end
+  def get(pid, key) do
+    ServerProcess.call(pid, {:get, key})
+  end
+  def put(pid, key, value) do
+    ServerProcess.call(pid, {:put, key, value})
   end
 end
