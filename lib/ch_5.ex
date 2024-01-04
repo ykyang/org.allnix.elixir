@@ -188,7 +188,7 @@ defmodule Ch5 do
   #  c(["lib/ch_5.ex"]); Ch5.test_ch5_8()
   # See TodoServer2 for modification that makes this work in iex
   def test_ch5_8() do
-    TodoServer2.start() |> Process.register(:todo_server)
+    TodoServer2.start() # |> Process.register(:todo_server)
 
     TodoServer2.add_entry(%{date: ~D[2023-12-19], title: "Dentist"})
     # Test
@@ -367,7 +367,7 @@ defmodule TodoServer2 do
       #Process.register(self(), :todo_server) # does not work in iex
       loop(TodoList.new())
     end)
-    #Process.register(pid, :todo_server)
+    Process.register(pid, :todo_server)
     pid
   end
   def stop() do
