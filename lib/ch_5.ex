@@ -184,6 +184,33 @@ defmodule Ch5 do
 
     TodoServer.stop(todo_server)
   end
+  ## 5.3.5 Registered processes
+  #  c(["lib/ch_5.ex"]); Ch5.test_ch5_8()
+  # See TodoServer2 for modification that makes this work in iex
+  def test_ch5_8() do
+    TodoServer2.start() |> Process.register(:todo_server)
+
+    TodoServer2.add_entry(%{date: ~D[2023-12-19], title: "Dentist"})
+    # Test
+    entries = TodoServer2.entries(~D[2023-12-19])
+    assert Ch5.collect_titles(entries) == MapSet.new(["Dentist"])
+
+    TodoServer2.add_entry(%{date: ~D[2023-12-20], title: "Shopping"})
+    TodoServer2.add_entry(%{date: ~D[2023-12-19], title: "Movie"})
+
+    # Test
+    entries = TodoServer2.entries(~D[2023-12-19])
+    assert Ch5.collect_titles(entries) == MapSet.new(["Dentist", "Movie"])
+    entries = TodoServer2.entries(~D[2023-12-20])
+    assert Ch5.collect_titles(entries) == MapSet.new(["Shopping"])
+
+    TodoServer2.stop()
+  end
+  ## 5.4 Runtime considerations
+  ## 5.4.1 A process is sequential
+  ## 5.4.2 unlimited process mailboxes
+  ## 5.4.3 Shared-nothing concurrency
+  ## 5.4.4 Scheduler inner workings
 end
 defmodule Ch5.Calculator do
   def start() do
@@ -307,6 +334,51 @@ defmodule TodoServer do
   end
   def entries(server, date) do
     send(server, {:entries, self(), date})
+    receive do
+      {:todo_entries, entries} -> entries
+    after
+      5000 -> {:error, :timeout}
+    end
+  end
+
+
+  defp loop(:stop), do: true
+  defp loop(todo_list) do
+    todo_list_out = receive do
+      :stop -> loop(:stop)
+      message -> proc_message(todo_list, message)
+    end
+
+    loop(todo_list_out)
+  end
+  defp proc_message(todo_list, {:add_entry, entry}) do
+    {_id, todo_list} = TodoList.add_entry(todo_list, entry)
+    todo_list
+  end
+  defp proc_message(todo_list, {:entries, client, date}) do
+    send(client, {:todo_entries, TodoList.entries(todo_list, date)})
+    todo_list
+  end
+end
+
+defmodule TodoServer2 do
+  def start do
+    pid = spawn(fn ->
+      #Process.register(self(), :todo_server) # does not work in iex
+      loop(TodoList.new())
+    end)
+    #Process.register(pid, :todo_server)
+    pid
+  end
+  def stop() do
+    send(:todo_server, :stop)
+  end
+
+  def add_entry(entry) do
+    send(:todo_server, {:add_entry, entry})
+  end
+  def entries(date) do
+    send(:todo_server, {:entries, self(), date})
     receive do
       {:todo_entries, entries} -> entries
     after
