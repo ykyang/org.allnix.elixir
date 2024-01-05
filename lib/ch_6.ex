@@ -24,12 +24,42 @@ defmodule Ch6 do
 
     # Use convenience methods
     pid = KeyValueStore.start()
-    KeyValueStore.put(pid, :some_key, :some_value)
+    out = KeyValueStore.put(pid, :some_key, :some_value)
+    assert out == :ok
     out = KeyValueStore.get(pid, :some_key)
     assert out == :some_value
 
     true
   end
+  ## 6.1.4 Supporting asynchronous requests
+  #  c(["lib/ch_6.ex"]); Ch6.test_ch6_2()
+  def test_ch6_2() do
+    pid = KeyValueStore2.start()
+    _out = KeyValueStore2.put(pid, :some_key, :some_value)
+    ## The following should not be tested.  This is internal data structure.
+    # assert _out == {:cast, {:put, :some_key, :some_value}}
+    out = KeyValueStore2.get(pid, :some_key)
+    assert out == :some_value
+
+    true
+  end
+  ## 6.2 Using GenServer
+  ## 6.2.1 OTP behaviours
+  ## 6.2.2 Plugging into GenServer
+  ## 6.2.3 Handling requests
+  #  c(["lib/ch_6.ex"]); pid = Ch6.test_ch6_3()
+  #  GenServer.stop(pid)
+  def test_ch6_3() do
+    kvs = KeyValueStore3
+    {:ok, pid} = KeyValueStore3.start()
+    :ok = kvs.put(pid, :some_key, :some_value)
+    :some_value = kvs.get(pid, :some_key)
+
+    pid
+  end
+  ## 6.2.4 Handling plain messages
+  # See test_ch6_3()
+  ## 6.2.5 Other GenServer features
 end
 
 defmodule ServerProcess do
@@ -72,5 +102,101 @@ defmodule KeyValueStore do
   end
   def put(pid, key, value) do
     ServerProcess.call(pid, {:put, key, value})
+  end
+end
+
+defmodule ServerProcess2 do
+  def call(server_pid, request) do
+    send(server_pid, {:call, request, self()})
+    receive do
+      {:response, response} -> response
+    end
+  end
+
+  def cast(server_pid, request) do
+    send(server_pid, {:cast, request})
+  end
+
+  def start(callback_module) do
+    spawn(fn ->
+      initial_state = callback_module.init()
+      loop(callback_module, initial_state)
+    end)
+  end
+
+  defp loop(callback_module, current_state) do
+    receive do
+      {:call, request, caller} ->
+        {response, new_state} = callback_module.handle_call(request, current_state)
+        send(caller, {:response, response})
+        loop(callback_module, new_state)
+      {:cast, request} ->
+        new_state = callback_module.handle_cast(request, current_state)
+        loop(callback_module, new_state)
+    end
+
+  end
+end
+defmodule KeyValueStore2 do
+  def init(), do: %{}
+  def handle_call({:get, key}, db) do
+    {Map.get(db, key), db}
+  end
+  # def handle_call({:put, key, value}, db) do
+  #   {:ok, Map.put(db, key, value)}
+  # end
+  def handle_cast({:put, key, value}, db) do
+    Map.put(db, key, value)
+  end
+
+  def start() do
+    ServerProcess2.start(KeyValueStore2)
+  end
+  def get(pid, key) do
+    ServerProcess2.call(pid, {:get, key})
+  end
+  def put(pid, key, value) do
+    ServerProcess2.cast(pid, {:put, key, value})
+  end
+end
+
+defmodule KeyValueStore3 do
+  use GenServer
+  # KeyValueStore.__info__(:functions)
+
+  ## default implementation
+  def init(init_arg) do
+    :timer.send_interval(5000, :cleanup)
+    {:ok, init_arg}
+  end
+  def start() do
+    GenServer.start(KeyValueStore3, %{}) # 2nd arg passed to init(_)
+  end
+
+  # def init(_) do # why not use the default one
+  #   initial_state = %{}
+  #   {:ok, initial_state}
+  # end
+  # def start() do
+  #   GenServer.start(KeyValueStore3, nil) # 2nd arg passed to init(_)
+  # end
+
+  def handle_cast({:put, key, value}, state) do
+    state2 = Map.put(state, key, value)
+    {:noreply, state2}
+  end
+  def handle_call({:get, key}, {_request_id, _caller}, state) do
+    {:reply, Map.get(state, key), state}
+  end
+  def handle_info(:cleanup, state) do
+    IO.puts("Performing cleanup...")
+    {:noreply, state}
+  end
+
+  def put(pid, key, value) do
+    GenServer.cast(pid, {:put, key, value})
+  end
+  def get(pid, key) do
+    GenServer.call(pid, {:get, key})
   end
 end
