@@ -51,7 +51,7 @@ defmodule Ch6 do
   #  GenServer.stop(pid)
   def test_ch6_3() do
     kvs = KeyValueStore3
-    {:ok, pid} = KeyValueStore3.start()
+    {:ok, pid} = kvs.start()
     :ok = kvs.put(pid, :some_key, :some_value)
     :some_value = kvs.get(pid, :some_key)
 
@@ -60,6 +60,21 @@ defmodule Ch6 do
   ## 6.2.4 Handling plain messages
   # See test_ch6_3()
   ## 6.2.5 Other GenServer features
+  ## Compile-time checking
+  ##   @impl
+  ## Name registration
+  #  c(["lib/ch_6.ex"]); Ch6.test_ch6_4()
+  def test_ch6_4() do
+    kvs = KeyValueStore4
+    {:ok, pid} = kvs.start()
+    :ok = kvs.put(:some_key, :some_value)
+    :some_value = kvs.get(:some_key)
+
+    GenServer.stop(pid)
+  end
+  ## Stopping the server
+  ## 6.2.6 Process lifecycle
+  ## 6.2.7 OTP-compliant processes
 end
 
 defmodule ServerProcess do
@@ -165,6 +180,7 @@ defmodule KeyValueStore3 do
   # KeyValueStore.__info__(:functions)
 
   ## default implementation
+  @impl true
   def init(init_arg) do
     :timer.send_interval(5000, :cleanup)
     {:ok, init_arg}
@@ -181,13 +197,18 @@ defmodule KeyValueStore3 do
   #   GenServer.start(KeyValueStore3, nil) # 2nd arg passed to init(_)
   # end
 
+  @impl true
   def handle_cast({:put, key, value}, state) do
     state2 = Map.put(state, key, value)
     {:noreply, state2}
   end
+
+  @impl GenServer
   def handle_call({:get, key}, {_request_id, _caller}, state) do
     {:reply, Map.get(state, key), state}
   end
+
+  @impl true
   def handle_info(:cleanup, state) do
     IO.puts("Performing cleanup...")
     {:noreply, state}
@@ -198,5 +219,43 @@ defmodule KeyValueStore3 do
   end
   def get(pid, key) do
     GenServer.call(pid, {:get, key})
+  end
+end
+
+defmodule KeyValueStore4 do
+  use GenServer
+  @impl true
+  def init(init_arg) do
+    {:ok, init_arg} # {:stop, "reason"}
+  end
+  def start() do
+    # 3rd arg is to register the process with atom
+    # use module name, __MODULE__ == KeyValueStore4
+    GenServer.start(__MODULE__, %{}, name: __MODULE__)
+  end
+
+  @impl true
+  def handle_cast({:put, key, value}, state) do
+    state2 = Map.put(state, key, value)
+    {:noreply, state2}
+  end
+
+  @impl GenServer
+  def handle_call({:get, key}, {_request_id, _caller}, state) do
+    {:reply, Map.get(state, key), state}
+  end
+
+  @impl true
+  def handle_info(:cleanup, state) do
+    IO.puts("Performing cleanup...")
+    {:noreply, state}
+  end
+
+  def put(key, value) do
+    # 1st is pid replaced by registered atom
+    GenServer.cast(__MODULE__, {:put, key, value})
+  end
+  def get(key) do
+    GenServer.call(__MODULE__, {:get, key})
   end
 end
