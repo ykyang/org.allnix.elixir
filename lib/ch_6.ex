@@ -75,7 +75,37 @@ defmodule Ch6 do
   ## Stopping the server
   ## 6.2.6 Process lifecycle
   ## 6.2.7 OTP-compliant processes
+
+  def collect_titles(entries) do
+    titles = Enum.reduce(entries, MapSet.new(), fn entry, acc ->
+      MapSet.put(acc, entry[:title])
+    end)
+    titles
+  end
+
+  ## 6.2.8 Exercise: GenServer-powered to-do server
+  #  c(["lib/ch_6.ex"]); Ch6.test_ch6_5()
+  def test_ch6_5() do
+    todo_server = TodoServer.start()
+
+    TodoServer.add_entry(todo_server, %{date: ~D[2023-12-19], title: "Dentist"})
+    # Test
+    entries = TodoServer.entries(todo_server, ~D[2023-12-19])
+    assert collect_titles(entries) == MapSet.new(["Dentist"])
+
+    TodoServer.add_entry(todo_server, %{date: ~D[2023-12-20], title: "Shopping"})
+    TodoServer.add_entry(todo_server, %{date: ~D[2023-12-19], title: "Movie"})
+
+    # Test
+    entries = TodoServer.entries(todo_server, ~D[2023-12-19])
+    assert collect_titles(entries) == MapSet.new(["Dentist", "Movie"])
+    entries = TodoServer.entries(todo_server, ~D[2023-12-20])
+    assert collect_titles(entries) == MapSet.new(["Shopping"])
+
+    TodoServer.stop(todo_server)
+  end
 end
+
 
 defmodule ServerProcess do
   def call(server_pid, request) do
@@ -257,5 +287,93 @@ defmodule KeyValueStore4 do
   end
   def get(key) do
     GenServer.call(__MODULE__, {:get, key})
+  end
+end
+
+defmodule TodoServer do
+  def start do
+    spawn(fn -> loop(TodoList.new()) end)
+  end
+  def stop(server_pid) do
+    send(server_pid, :stop)
+  end
+
+  def add_entry(pid, entry) do
+    send(pid, {:add_entry, entry})
+  end
+  def entries(server, date) do
+    send(server, {:entries, self(), date})
+    receive do
+      {:todo_entries, entries} -> entries
+    after
+      5000 -> {:error, :timeout}
+    end
+  end
+
+
+  defp loop(:stop), do: true
+  defp loop(todo_list) do
+    todo_list_out = receive do
+      :stop -> loop(:stop)
+      message -> proc_message(todo_list, message)
+    end
+
+    loop(todo_list_out)
+  end
+  defp proc_message(todo_list, {:add_entry, entry}) do
+    {_id, todo_list} = TodoList.add_entry(todo_list, entry)
+    todo_list
+  end
+  defp proc_message(todo_list, {:entries, client, date}) do
+    send(client, {:todo_entries, TodoList.entries(todo_list, date)})
+    todo_list
+  end
+end
+
+## Copied from todo_list.ex
+defmodule TodoList do
+  defstruct next_id: 1, entries: %{}
+
+  def new(entries \\ []) do
+    Enum.reduce(
+      entries, %TodoList{},
+      fn entry, todo_list ->
+        add_entry(todo_list, entry)
+      end
+    )
+  end
+
+  @spec add_entry(TodoList, map()) :: TodoList
+  def add_entry(todo_list, entry) do
+    # add id to entry
+    id = todo_list.next_id
+    entry = Map.put(entry, :id, id)
+    new_entries = Map.put(todo_list.entries, id, entry)
+
+    todo_list_out = %TodoList{todo_list |
+      entries: new_entries,
+      next_id: todo_list.next_id + 1
+    }
+
+    {id,todo_list_out}
+  end
+
+  def entries(todo_list, date) do
+    todo_list.entries |> Map.values()
+    |> Enum.filter(fn entry -> entry.date == date end)
+  end
+
+  def update_entry(todo_list, entry_id, update_fn) do
+    case Map.fetch(todo_list.entries, entry_id) do
+      :error -> todo_list
+      {:ok, old_entry} ->
+        new_entry = update_fn.(old_entry)
+        new_entries = Map.put(todo_list.entries, new_entry.id, new_entry)
+        %TodoList{todo_list | entries: new_entries}
+    end
+  end
+
+  def delete_entry(todo_list, entry_id) do
+    Map.delete(todo_list, entry_id)
   end
 end
