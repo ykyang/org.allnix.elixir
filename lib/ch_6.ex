@@ -104,6 +104,29 @@ defmodule Ch6 do
 
     TodoServer.stop(todo_server)
   end
+
+  ## Use TodoServer2 which uses GenServer
+  #  c(["lib/ch_6.ex"]); Ch6.test_ch6_6()
+  def test_ch6_6() do
+    tsr = TodoServer2
+    {:ok, todo_server} = tsr.start()
+
+    tsr.add_entry(todo_server, %{date: ~D[2023-12-19], title: "Dentist"})
+    # Test
+    entries = tsr.entries(todo_server, ~D[2023-12-19])
+    assert collect_titles(entries) == MapSet.new(["Dentist"])
+
+    tsr.add_entry(todo_server, %{date: ~D[2023-12-20], title: "Shopping"})
+    tsr.add_entry(todo_server, %{date: ~D[2023-12-19], title: "Movie"})
+
+    # Test
+    entries = tsr.entries(todo_server, ~D[2023-12-19])
+    assert collect_titles(entries) == MapSet.new(["Dentist", "Movie"])
+    entries = tsr.entries(todo_server, ~D[2023-12-20])
+    assert collect_titles(entries) == MapSet.new(["Shopping"])
+
+    GenServer.stop(todo_server)
+  end
 end
 
 
@@ -309,8 +332,6 @@ defmodule TodoServer do
       5000 -> {:error, :timeout}
     end
   end
-
-
   defp loop(:stop), do: true
   defp loop(todo_list) do
     todo_list_out = receive do
@@ -329,6 +350,35 @@ defmodule TodoServer do
     todo_list
   end
 end
+
+defmodule TodoServer2 do
+  use GenServer
+
+  @impl true
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+  def start() do
+    GenServer.start(TodoServer2, TodoList.new())
+  end
+
+  def add_entry(pid, entry) do
+    GenServer.cast(pid, {:add_entry, entry})
+  end
+  def entries(pid, date) do
+    GenServer.call(pid, {:entries, date})
+  end
+  @impl true
+  def handle_cast({:add_entry, entry}, state) do
+    {_id, state2} = TodoList.add_entry(state, entry)
+    {:noreply, state2}
+  end
+  @impl true
+  def handle_call({:entries, date}, {_request_id, _caller}, state) do
+    {:reply, TodoList.entries(state, date), state}
+  end
+end
+
 
 ## Copied from todo_list.ex
 defmodule TodoList do
