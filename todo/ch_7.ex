@@ -41,5 +41,9 @@ defmodule Ch7 do
     assert collect_titles(entries) == MapSet.new(["Shopping"])
 
     GenServer.stop(todo_server)
+    tsr.stop(todo_server)
   end
+  ## 7.2 Managing multiple to-do list
+  ## 7.2.1 Implementing a cache
+  # See todo_cache/
 end
