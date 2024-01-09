@@ -77,4 +77,6 @@ defmodule Ch7 do
   end
   ## 7.2.2 Writing tests
   # see test/todo/cache_text.exs
+  ## 7.3 Persisting data
+  # see persistable_todo_cache
 end
