@@ -79,4 +79,40 @@ defmodule Ch7 do
   # see test/todo/cache_text.exs
   ## 7.3 Persisting data
   # see persistable_todo_cache
+  ## 7.3.2 Using the database
+  ## Part 1
+  #  c(["ch_7.ex"]); Ch7.test_ch7_4()
+  def test_ch7_4() do
+    # Delete
+    File.rm("./persist/bobs_list")
+
+    tdch = Todo.Cache
+    tsrv = Todo.Server
+
+    {:ok, cache} = Todo.Cache.start()
+    bob = tdch.server_process(cache, "bobs_list")
+    tsrv.add_entry(bob, %{date: ~D[2023-12-19], title: "Dentist"})
+    entries = tsrv.entries(bob, ~D[2023-12-19])
+    assert [%{date: ~D[2023-12-19], title: "Dentist"}] = entries
+
+    Process.sleep(1) # wait for IO
+    assert File.exists?("persist/bobs_list") == true
+
+    :ok
+  end
+  ## Part 2
+  #  c(["ch_7.ex"]); Ch7.test_ch7_4(); Ch7.test_ch7_5()
+  def test_ch7_5() do
+    tcah = Todo.Cache
+    tsrv = Todo.Server
+
+    {:ok, cache} = tcah.start()
+    bob = tcah.server_process(cache, "bobs_list")
+
+    entries = tsrv.entries(bob, ~D[2023-12-19])
+    assert [%{date: ~D[2023-12-19], title: "Dentist"}] = entries
+
+    :ok
+  end
+  ## 7.3.3 Analyzing the system
 end
