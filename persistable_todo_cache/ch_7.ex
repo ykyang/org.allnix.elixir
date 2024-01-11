@@ -115,4 +115,61 @@ defmodule Ch7 do
     :ok
   end
   ## 7.3.3 Analyzing the system
+  ## 7.3.4 Addressing the process bottleneck
+  ## 7.3.5 Exercise: pooling and synchronizing
+  #  c(["ch_7.ex"]); Ch7.test_ch7_6();
+  ## Part 1
+  def test_ch7_6() do
+    # Delete
+    File.rm("./persist/bobs_list")
+    File.rm("./persist/amys_list")
+
+    tcah = Todo.Cache
+    tsrv = Todo.Server
+
+    {:ok, pid_cache} = tcah.start()
+    IO.inspect(pid_cache, label: "Cache")
+
+    pid = tcah.server_process(pid_cache, "bobs_list")
+    IO.inspect(pid, label: "Bob")
+
+    out = tsrv.add_entry(pid, %{date: ~D[2023-12-19], title: "Dentist"})
+    IO.inspect(out, label: "Bob add_entry")
+
+    entries = tsrv.entries(pid, ~D[2023-12-19])
+    IO.inspect(entries, label: "entries")
+    assert [%{date: ~D[2023-12-19], title: "Dentist"}] = entries
+
+
+    pid = tcah.server_process(pid_cache, "amys_list")
+    IO.inspect(pid, label: "Amy")
+
+    out = tsrv.add_entry(pid, %{date: ~D[2023-12-19], title: "Dentist"})
+    IO.inspect(out, label: "Amy add_entry")
+
+    entries = tsrv.entries(pid, ~D[2023-12-19])
+    IO.inspect(entries, label: "entries")
+    assert [%{date: ~D[2023-12-19], title: "Dentist"}] = entries
+
+    :ok
+  end
+
+  ## Part 2
+  #  c(["ch_7.ex"]); Ch7.test_ch7_6(); Ch7.test_ch7_7();
+  def test_ch7_7() do
+    tcah = Todo.Cache
+    tsrv = Todo.Server
+
+    {:ok, cache} = tcah.start()
+
+    pid = tcah.server_process(cache, "bobs_list")
+    entries = tsrv.entries(pid, ~D[2023-12-19])
+    assert [%{date: ~D[2023-12-19], title: "Dentist"}] = entries
+
+    pid = tcah.server_process(cache, "amys_list")
+    entries = tsrv.entries(pid, ~D[2023-12-19])
+    assert [%{date: ~D[2023-12-19], title: "Dentist"}] = entries
+
+    :ok
+  end
 end
