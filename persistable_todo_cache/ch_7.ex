@@ -172,4 +172,5 @@ defmodule Ch7 do
 
     :ok
   end
+  ## 7.4 Reasoning with processes
 end
