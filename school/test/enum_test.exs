@@ -64,6 +64,45 @@ defmodule EnumTest do
   end
 
   test "reduce" do
-    assert false
+    assert 16 == Enum.reduce([1,2,3], 10, fn(x,acc)-> x+acc end)
+    # 1st is used as accumulator, and starts from 2nd element
+    assert 6 == Enum.reduce([1,2,3], fn(x,acc)-> x+acc end)
+    assert "cba1" == Enum.reduce(["a","b","c"], "1", fn(x,acc)-> x <> acc end)
+  end
+
+  test "sort" do
+    assert [-1, 1, 3, 4, 5, 6] == Enum.sort([5,6,1,3,-1,4], :asc)
+    assert [6, 5, 4, 3, 1, -1] == Enum.sort([5,6,1,3,-1,4], :desc)
+    assert [-1, 1, 3, 4, 5, 6] == Enum.sort([5,6,1,3,-1,4], fn x,y -> x < y end)
+    assert [6, 5, 4, 3, 1, -1] == Enum.sort([5,6,1,3,-1,4], fn x,y -> x > y end)
+
+    # sort different types
+    assert [-1, 4, Enum, :foo, "bar"] == Enum.sort([:foo, "bar", Enum, -1, 4])
+    # Custom sort function
+    list = [%{val: 4}, %{val: 1}, %{val: 3}]
+    assert [%{val: 4}, %{val: 3}, %{val: 1}] == Enum.sort(list, fn x,y -> x[:val] > y[:val] end)
+    assert [%{val: 1}, %{val: 3}, %{val: 4}] == Enum.sort(list)
+  end
+
+  test "uniq" do
+    assert [1, 3, 2, 0] == Enum.uniq([1, 3, 2, 2, 1, 1, 3, 0, 1])
+    # uniq_by
+    # (x,y) coordinate, find points with unique y
+    list = [%{x: 1, y: 1}, %{x: 2, y: 1}, %{x: 3, y: 3}]
+    assert [%{x: 1, y: 1}, %{x: 3, y: 3}] == Enum.uniq_by(list, fn coord -> coord.y end)
+  end
+
+  def add_3(x), do: x + 3
+
+  test "Capture operator &" do
+    assert [4,5,6] == Enum.map([1,2,3], fn x -> x + 3 end)
+    # with &
+    assert [4,5,6] == Enum.map([1,2,3], &(&1 + 3))
+    # assign capture to a variable
+    op = &(&1 + 3)
+    assert [4,5,6] == Enum.map([1,2,3], op)
+    # Use a named function
+    assert [4,5,6] == Enum.map([1,2,3], &add_3(&1))
+    assert [4,5,6] == Enum.map([1,2,3], &add_3/1)
   end
 end
