@@ -81,7 +81,7 @@ defmodule ControlTest do
     do
       middle
     end
-    assert out == :error
+    assert :error = out
 
     # else
     out = with {:ok, middle} <- Map.fetch(user, :middle), # :error
