@@ -34,12 +34,13 @@ defmodule FunctionTest do
 
   def hello(), do: "Hello, there!"
   def hello(name) when is_binary(name), do: "Hello, " <> name
-  def hello(x,y), do: "Hello, #{x} and #{y}"
   def hello(person = %{name: name}) when is_map(person), do: "Hello, #{name}"
   def hello(names) when is_list(names) do
     names_str = Enum.join(names, ", ")
     hello(names_str)
   end
+  def hello(x,y), do: "Hello, #{x} and #{y}"
+
 
   def length_of([]), do: 0
   def length_of([_head | tail]), do: 1 + length_of(tail)
@@ -69,7 +70,7 @@ defmodule FunctionTest do
 
     ## Default Arguments
     # see hello2(name)
-    assert "Hola, Elle" = hello2("Elle", language_code="es")
+    assert "Hola, Elle" = hello2("Elle", "es")
 
     ## function head
     # def hello(names, language_code \\ "en")
