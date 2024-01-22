@@ -42,9 +42,13 @@ defmodule CollectionTest do
     # Keys are ordered
     # Keys do not have to be unique
     # commonly used to pass options to functions
-    # list = [foo: "bar", hello: "world"]
-    assert [foo: "bar", hello: "world"] != [hello: "world", foo: "bar"]
-    assert [foo: "bar", hello: "world"] == [{:foo, "bar"}, {:hello, "world"}]
+    list = [foo: "bar", hello: "world"]
+    assert list != [hello: "world", foo: "bar"]
+    assert list == [{:foo, "bar"}, {:hello, "world"}]
+
+    assert "bar" = list[:foo]
+    list = [foo: "hello", foo: "bar", hello: "world"]
+    assert "hello" = list[:foo]
   end
 
   test "Maps" do

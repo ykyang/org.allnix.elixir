@@ -32,9 +32,9 @@ defmodule ControlTest do
     # no match raise a CaseClauseError
 
     # use pin ^ operator
-    pie = 3.14
+    #pie = 3.14
     out = case "cherry pie" do
-      ^pie -> "Not so tasty" # match to pie=3.14
+      #^pie -> "Not so tasty" # match to pie=3.14
       pie -> "I bet #{pie} is tasty" # pie = "cherry pie"
     end
 
