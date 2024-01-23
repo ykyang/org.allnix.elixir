@@ -17,7 +17,7 @@ defmodule ComprehensionsTest do
     # Maps
     db = %{a: "A", b: "B", c: "C"}
     out = for {_k,v} <- db, do: v
-    assert ~w/A B C/ = out
+    assert ~w/A B C/ = Enum.sort(out)
 
     # binaries
     # <<>> binary stream
