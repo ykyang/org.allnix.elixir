@@ -1,3 +1,4 @@
+# c(["Circle.ex"]); Circle.area(1)
 defmodule Circle do
   @moduledoc "Implements basic circle functions"
   @pi 3.14159
